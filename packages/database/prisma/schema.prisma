@@ -1,0 +1,1266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  COLLABORATOR
+}
+
+enum Sport {
+  CYCLING
+  RUNNING
+  TRIATHLON
+  SWIMMING
+  GENERAL
+  OTHER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNISEX
+}
+
+enum ProductStatus {
+  ACTIVE
+  DRAFT
+  DISCONTINUED
+}
+
+enum VariantStatus {
+  AVAILABLE
+  LOW_STOCK
+  OUT_OF_STOCK
+  DISCONTINUED
+}
+
+enum StockMovementType {
+  ENTRY
+  EXIT
+  ADJUSTMENT
+  RETURN
+  TRANSFER
+  TRANSFER_OUT
+  TRANSFER_IN
+  SALE_LOCAL
+  SALE_ONLINE
+  PHYSICAL_COUNT
+}
+
+enum LocationType {
+  LOCAL
+  SHOPIFY
+  WAREHOUSE
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  SINPE
+  TRANSFER
+  MIXED
+}
+
+enum CountStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ShopifySyncType {
+  PRODUCT
+  INVENTORY
+  ORDER
+  FULL
+}
+
+enum SyncDirection {
+  TO_SHOPIFY
+  FROM_SHOPIFY
+  RECONCILIATION
+}
+
+enum SyncStatus {
+  SUCCESS
+  FAILED
+  PARTIAL
+  PENDING
+}
+
+enum StockReferenceType {
+  ORDER
+  MANUAL
+  IMPORT
+  RETURN
+  ADJUSTMENT
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  IN_PRODUCTION
+  READY
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum DeliveryMethod {
+  PICKUP
+  CORREOS_CR
+  PRIVATE_COURIER
+}
+
+enum OrderSource {
+  WHATSAPP
+  WEB
+  ADMIN
+  SHOPIFY
+}
+
+enum ConversationChannel {
+  WHATSAPP
+  WEB
+}
+
+enum ConversationStatus {
+  BOT_ACTIVE
+  WAITING_AGENT
+  AGENT_ACTIVE
+  CLOSED
+}
+
+enum MessageSenderType {
+  CUSTOMER
+  BOT
+  AGENT
+  SYSTEM
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  BUTTON_RESPONSE
+  LOCATION
+  DOCUMENT
+}
+
+enum NotificationType {
+  NEW_CUSTOMER
+  NEW_ORDER
+  ORDER_STATUS
+  LOW_STOCK
+  STOCK_OUT
+  AGENT_REQUEST
+  ORDER_READY
+  ORDER_SHIPPED
+  CRM_SYNC_ERROR
+  SYSTEM_ERROR
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  EMAIL
+  DASHBOARD
+  ALL
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum CRMEntityType {
+  DEAL
+  PERSON
+  STAGE
+}
+
+enum CRMSyncAction {
+  CREATE
+  UPDATE
+  DELETE
+  SYNC
+}
+
+enum CRMSyncDirection {
+  TO_CRM
+  FROM_CRM
+}
+
+enum CRMSyncStatus {
+  SUCCESS
+  FAILED
+  PENDING
+  RETRYING
+}
+
+// ─────────────────────────────────────────────
+// MTO (Make-to-Order) ENUMS
+// ─────────────────────────────────────────────
+
+enum WorkOrderStatus {
+  BORRADOR
+  PENDIENTE_VALIDACION
+  ARCHIVOS_VALIDADOS
+  PENDIENTE_PAGO
+  ORDEN_CONFIRMADA
+  EN_COLA_DISENO
+  EN_DISENO
+  DISENO_EN_REVISION
+  ESPERANDO_APROBACION_CLIENTE
+  APROBADO_PARA_PRODUCCION
+  EN_IMPRESION
+  EN_CORTE
+  EN_ARMADO
+  EN_CONTROL_CALIDAD
+  QC_RECHAZADO
+  EN_REPROCESO
+  EMPACADO
+  LISTO_PARA_ENTREGA
+  EN_TRANSITO
+  ENTREGADO
+  CERRADO
+  CANCELADO
+}
+
+enum WorkOrderPriority {
+  BAJA
+  NORMAL
+  ALTA
+  URGENTE
+}
+
+enum ProductionStation {
+  IMPRESION
+  CORTE
+  ARMADO
+  EMPAQUE
+}
+
+enum DesignFileStatus {
+  PENDING_VALIDATION
+  VALIDATED
+  REJECTED
+}
+
+enum DesignApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVISION_REQUESTED
+}
+
+enum QCResult {
+  PASSED
+  FAILED
+  PASSED_WITH_OBSERVATIONS
+}
+
+enum IncidentType {
+  CLIENT_FILE_ERROR
+  DESIGN_ERROR
+  PRINT_DEFECT
+  CUT_ERROR
+  ASSEMBLY_DEFECT
+  MATERIAL_DEFECT
+  MACHINE_FAILURE
+  PACKAGING_ERROR
+  DELIVERY_ERROR
+  OTHER
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentResponsibility {
+  CLIENT
+  VONEB
+  SUPPLIER
+  MACHINE
+}
+
+enum IncidentResolution {
+  FULL_REWORK
+  PARTIAL_REWORK
+  NEW_ORDER
+  DISCOUNT
+  TOTAL_LOSS
+  NO_ACTION
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  CLOSED
+}
+
+enum DeliveryType {
+  ENVIO
+  RETIRO_SUCURSAL
+  TIENDA
+}
+
+enum DeliveryStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  FAILED
+}
+
+// ─────────────────────────────────────────────
+// 1. USER (colaboradores/admins)
+// ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  name          String
+  role          UserRole  @default(COLLABORATOR)
+  avatarUrl     String?   @map("avatar_url")
+  whatsappPhone String?   @map("whatsapp_phone")
+  active        Boolean   @default(true)
+  lastLogin     DateTime? @map("last_login")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  stockMovements        StockMovement[]
+  assignedOrders        Order[]              @relation("AssignedTo")
+  assignedConversations Conversation[]       @relation("AssignedAgent")
+  notifications         Notification[]
+  configUpdates         SystemConfig[]
+  orderStatusChanges    OrderStatusHistory[]
+  localSales            LocalSale[]
+  physicalCounts        PhysicalCount[]
+
+  // MTO Relations
+  designerWorkOrders  WorkOrder[]              @relation("DesignerAssignment")
+  cancelledWorkOrders WorkOrder[]              @relation("WorkOrderCanceller")
+  createdWorkOrders   WorkOrder[]              @relation("WorkOrderCreator")
+  uploadedDesignFiles DesignFile[]             @relation("DesignFileUploader")
+  productionLogs      ProductionLog[]          @relation("ProductionOperator")
+  qualityInspections  QualityCheck[]           @relation("QCInspector")
+  resolvedIncidents   Incident[]               @relation("IncidentResolver")
+  reportedIncidents   Incident[]               @relation("IncidentReporter")
+  generatedLabels     PackageLabel[]           @relation("LabelGenerator")
+  confirmedDeliveries DeliveryRecord[]         @relation("DeliveryConfirmer")
+  woStatusChanges     WorkOrderStatusHistory[] @relation("WOStatusChanger")
+  aiConsultations     AIConsultation[]         @relation("AIConsultTarget")
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// 2. CUSTOMER (clientes de V ONE B)
+// ─────────────────────────────────────────────
+
+model Customer {
+  id                     String    @id @default(cuid())
+  whatsappPhone          String    @unique @map("whatsapp_phone")
+  firstName              String?   @map("first_name")
+  lastName               String?   @map("last_name")
+  email                  String?
+  deliveryAddresses      Json      @default("[]") @map("delivery_addresses")
+  province               String?
+  canton                 String?
+  crmContactId           String?   @map("crm_contact_id")
+  dataCollectionComplete Boolean   @default(false) @map("data_collection_complete")
+  preferredSport         Sport?    @map("preferred_sport")
+  notes                  String?
+  tags                   String[]  @default([])
+  totalOrders            Int       @default(0) @map("total_orders")
+  totalSpent             Int       @default(0) @map("total_spent")
+  lastInteractionAt      DateTime? @map("last_interaction_at")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  orders        Order[]
+  conversations Conversation[]
+  localSales    LocalSale[]
+  workOrders    WorkOrder[]
+
+  @@map("customers")
+}
+
+// ─────────────────────────────────────────────
+// 3. CATEGORY
+// ─────────────────────────────────────────────
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  imageUrl    String?  @map("image_url")
+  sortOrder   Int      @default(0) @map("sort_order")
+  active      Boolean  @default(true)
+  parentId    String?  @map("parent_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Self-relation for subcategories
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+
+  // Relations
+  products Product[]
+
+  @@map("categories")
+}
+
+// ─────────────────────────────────────────────
+// 4. PRODUCT
+// ─────────────────────────────────────────────
+
+model Product {
+  id               String        @id @default(cuid())
+  name             String
+  slug             String        @unique
+  descriptionShort String?       @map("description_short")
+  descriptionLong  String?       @map("description_long")
+  categoryId       String        @map("category_id")
+  basePriceCents   Int           @map("base_price_cents")
+  costPriceCents   Int?          @map("cost_price_cents")
+  currency         String        @default("CRC")
+  brand            String        @default("V ONE B")
+  supplier         String?
+  season           String?
+  images           String[]      @default([])
+  tags             String[]      @default([])
+  gender           Gender        @default(UNISEX)
+  sport            Sport         @default(GENERAL)
+  materialInfo     String?       @map("material_info")
+  careInstructions String?       @map("care_instructions")
+  status           ProductStatus @default(DRAFT)
+  shopifyProductId String?       @map("shopify_product_id")
+  featured         Boolean       @default(false)
+  newArrival       Boolean       @default(false) @map("new_arrival")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  category Category         @relation(fields: [categoryId], references: [id])
+  variants ProductVariant[]
+
+  @@map("products")
+}
+
+// ─────────────────────────────────────────────
+// 5. PRODUCT VARIANT
+// ─────────────────────────────────────────────
+
+model ProductVariant {
+  id                     String        @id @default(cuid())
+  productId              String        @map("product_id")
+  sku                    String        @unique
+  color                  String
+  colorHex               String?       @map("color_hex")
+  size                   String
+  sizeOrder              Int           @map("size_order")
+  stockQuantity          Int           @default(0) @map("stock_quantity")
+  minStockThreshold      Int           @default(3) @map("min_stock_threshold")
+  additionalPriceCents   Int           @default(0) @map("additional_price_cents")
+  weightGrams            Int?          @map("weight_grams")
+  barcode                String?       @unique
+  barcodeFormat          String?       @default("CODE128") @map("barcode_format")
+  shopifyVariantId       String?       @unique @map("shopify_variant_id")
+  shopifyInventoryItemId String?       @unique @map("shopify_inventory_item_id")
+  status                 VariantStatus @default(AVAILABLE)
+  createdAt              DateTime      @default(now()) @map("created_at")
+  updatedAt              DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  product            Product             @relation(fields: [productId], references: [id])
+  stockMovements     StockMovement[]
+  orderItems         OrderItem[]
+  locationStocks     LocationStock[]
+  localSaleItems     LocalSaleItem[]
+  physicalCountItems PhysicalCountItem[]
+
+  @@unique([productId, color, size])
+  @@map("product_variants")
+}
+
+// ─────────────────────────────────────────────
+// 6. STOCK MOVEMENT
+// ─────────────────────────────────────────────
+
+model StockMovement {
+  id            String             @id @default(cuid())
+  variantId     String             @map("variant_id")
+  locationId    String?            @map("location_id")
+  type          StockMovementType
+  quantity      Int
+  reason        String?
+  referenceType StockReferenceType @map("reference_type")
+  referenceId   String?            @map("reference_id")
+  performedById String?            @map("performed_by_id")
+  notes         String?
+  createdAt     DateTime           @default(now()) @map("created_at")
+
+  // Relations
+  variant     ProductVariant     @relation(fields: [variantId], references: [id])
+  location    InventoryLocation? @relation(fields: [locationId], references: [id])
+  performedBy User?              @relation(fields: [performedById], references: [id])
+
+  @@index([variantId, createdAt])
+  @@index([locationId])
+  @@map("stock_movements")
+}
+
+// ─────────────────────────────────────────────
+// 7. ORDER
+// ─────────────────────────────────────────────
+
+model Order {
+  id                      String         @id @default(cuid())
+  orderNumber             String         @unique @map("order_number")
+  customerId              String         @map("customer_id")
+  status                  OrderStatus    @default(PENDING)
+  crmDealId               String?        @map("crm_deal_id")
+  crmStage                String?        @map("crm_stage")
+  subtotalCents           Int            @map("subtotal_cents")
+  shippingCents           Int            @default(0) @map("shipping_cents")
+  discountCents           Int            @default(0) @map("discount_cents")
+  taxCents                Int            @default(0) @map("tax_cents")
+  totalCents              Int            @map("total_cents")
+  currency                String         @default("CRC")
+  deliveryMethod          DeliveryMethod @map("delivery_method")
+  deliveryAddress         Json?          @map("delivery_address")
+  deliveryTrackingNumber  String?        @map("delivery_tracking_number")
+  estimatedDeliveryDate   DateTime?      @map("estimated_delivery_date")
+  customerNotifiedReady   Boolean        @default(false) @map("customer_notified_ready")
+  customerNotifiedShipped Boolean        @default(false) @map("customer_notified_shipped")
+  internalNotes           String?        @map("internal_notes")
+  customerNotes           String?        @map("customer_notes")
+  source                  OrderSource    @default(WHATSAPP)
+  assignedToId            String?        @map("assigned_to_id")
+  createdAt               DateTime       @default(now()) @map("created_at")
+  updatedAt               DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  customer      Customer             @relation(fields: [customerId], references: [id])
+  assignedTo    User?                @relation("AssignedTo", fields: [assignedToId], references: [id])
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
+  workOrders    WorkOrder[]
+
+  @@map("orders")
+}
+
+// ─────────────────────────────────────────────
+// 8. ORDER ITEM
+// ─────────────────────────────────────────────
+
+model OrderItem {
+  id              String   @id @default(cuid())
+  orderId         String   @map("order_id")
+  variantId       String   @map("variant_id")
+  quantity        Int
+  unitPriceCents  Int      @map("unit_price_cents")
+  totalPriceCents Int      @map("total_price_cents")
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relations
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("order_items")
+}
+
+// ─────────────────────────────────────────────
+// ORDER STATUS HISTORY
+// ─────────────────────────────────────────────
+
+model OrderStatusHistory {
+  id          String       @id @default(cuid())
+  orderId     String       @map("order_id")
+  fromStatus  OrderStatus? @map("from_status")
+  toStatus    OrderStatus  @map("to_status")
+  changedById String?      @map("changed_by_id")
+  notes       String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changedBy User? @relation(fields: [changedById], references: [id])
+
+  @@index([orderId, createdAt])
+  @@map("order_status_history")
+}
+
+// ─────────────────────────────────────────────
+// 9. CONVERSATION
+// ─────────────────────────────────────────────
+
+model Conversation {
+  id              String              @id @default(cuid())
+  customerId      String              @map("customer_id")
+  channel         ConversationChannel @default(WHATSAPP)
+  status          ConversationStatus  @default(BOT_ACTIVE)
+  assignedAgentId String?             @map("assigned_agent_id")
+  botState        String?             @map("bot_state")
+  botContext      Json?               @map("bot_context")
+  summary         String?
+  startedAt       DateTime            @default(now()) @map("started_at")
+  lastMessageAt   DateTime?           @map("last_message_at")
+  closedAt        DateTime?           @map("closed_at")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+
+  // Relations
+  customer      Customer  @relation(fields: [customerId], references: [id])
+  assignedAgent User?     @relation("AssignedAgent", fields: [assignedAgentId], references: [id])
+  messages      Message[]
+
+  @@map("conversations")
+}
+
+// ─────────────────────────────────────────────
+// 10. MESSAGE
+// ─────────────────────────────────────────────
+
+model Message {
+  id                String            @id @default(cuid())
+  conversationId    String            @map("conversation_id")
+  senderType        MessageSenderType @map("sender_type")
+  content           String
+  messageType       MessageType       @default(TEXT) @map("message_type")
+  mediaUrl          String?           @map("media_url")
+  whatsappMessageId String?           @map("whatsapp_message_id")
+  metadata          Json?
+  read              Boolean           @default(false)
+  createdAt         DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+// ─────────────────────────────────────────────
+// 11. NOTIFICATION
+// ─────────────────────────────────────────────
+
+model Notification {
+  id                String               @id @default(cuid())
+  type              NotificationType
+  title             String
+  body              String
+  channel           NotificationChannel  @default(DASHBOARD)
+  priority          NotificationPriority @default(MEDIUM)
+  targetUserId      String?              @map("target_user_id")
+  relatedEntityType String?              @map("related_entity_type")
+  relatedEntityId   String?              @map("related_entity_id")
+  metadata          Json?
+  sent              Boolean              @default(false)
+  sentAt            DateTime?            @map("sent_at")
+  read              Boolean              @default(false)
+  readAt            DateTime?            @map("read_at")
+  error             String?
+  retryCount        Int                  @default(0) @map("retry_count")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+
+  // Relations
+  targetUser User? @relation(fields: [targetUserId], references: [id])
+
+  @@index([targetUserId, read, createdAt])
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────
+// 12. CRM SYNC LOG
+// ─────────────────────────────────────────────
+
+model CRMSyncLog {
+  id              String           @id @default(cuid())
+  entityType      CRMEntityType    @map("entity_type")
+  entityId        String           @map("entity_id")
+  crmEntityId     String?          @map("crm_entity_id")
+  action          CRMSyncAction
+  direction       CRMSyncDirection
+  status          CRMSyncStatus    @default(PENDING)
+  requestPayload  Json?            @map("request_payload")
+  responsePayload Json?            @map("response_payload")
+  errorMessage    String?          @map("error_message")
+  retryCount      Int              @default(0) @map("retry_count")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  @@map("crm_sync_logs")
+}
+
+// ─────────────────────────────────────────────
+// 13. SYSTEM CONFIG
+// ─────────────────────────────────────────────
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  updatedById String?  @map("updated_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  updatedBy User? @relation(fields: [updatedById], references: [id])
+
+  @@map("system_config")
+}
+
+// ─────────────────────────────────────────────
+// 14. INVENTORY LOCATION
+// ─────────────────────────────────────────────
+
+model InventoryLocation {
+  id                String       @id @default(cuid())
+  name              String
+  slug              String       @unique
+  type              LocationType @default(LOCAL)
+  address           String?
+  isDefault         Boolean      @default(false) @map("is_default")
+  isActive          Boolean      @default(true) @map("is_active")
+  shopifyLocationId String?      @unique @map("shopify_location_id")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  stockLevels    LocationStock[]
+  movements      StockMovement[]
+  localSales     LocalSale[]
+  physicalCounts PhysicalCount[]
+
+  @@map("inventory_locations")
+}
+
+// ─────────────────────────────────────────────
+// 15. LOCATION STOCK
+// ─────────────────────────────────────────────
+
+model LocationStock {
+  id           String   @id @default(cuid())
+  variantId    String   @map("variant_id")
+  locationId   String   @map("location_id")
+  quantity     Int      @default(0)
+  minThreshold Int      @default(3) @map("min_threshold")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  variant  ProductVariant    @relation(fields: [variantId], references: [id])
+  location InventoryLocation @relation(fields: [locationId], references: [id])
+
+  @@unique([variantId, locationId])
+  @@index([locationId])
+  @@index([variantId])
+  @@map("location_stocks")
+}
+
+// ─────────────────────────────────────────────
+// 16. LOCAL SALE (POS)
+// ─────────────────────────────────────────────
+
+model LocalSale {
+  id            String        @id @default(cuid())
+  saleNumber    String        @unique @map("sale_number")
+  subtotalCents Int           @map("subtotal_cents")
+  discountCents Int           @default(0) @map("discount_cents")
+  totalCents    Int           @map("total_cents")
+  paymentMethod PaymentMethod @map("payment_method")
+  customerId    String?       @map("customer_id")
+  soldById      String        @map("sold_by_id")
+  locationId    String        @map("location_id")
+  notes         String?
+  voided        Boolean       @default(false)
+  voidReason    String?       @map("void_reason")
+  voidedAt      DateTime?     @map("voided_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  items    LocalSaleItem[]
+  customer Customer?         @relation(fields: [customerId], references: [id])
+  soldBy   User              @relation(fields: [soldById], references: [id])
+  location InventoryLocation @relation(fields: [locationId], references: [id])
+
+  @@index([locationId, createdAt])
+  @@index([soldById])
+  @@map("local_sales")
+}
+
+model LocalSaleItem {
+  id              String @id @default(cuid())
+  saleId          String @map("sale_id")
+  variantId       String @map("variant_id")
+  quantity        Int
+  unitPriceCents  Int    @map("unit_price_cents")
+  totalPriceCents Int    @map("total_price_cents")
+
+  // Relations
+  sale    LocalSale      @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("local_sale_items")
+}
+
+// ─────────────────────────────────────────────
+// 17. PHYSICAL COUNT
+// ─────────────────────────────────────────────
+
+model PhysicalCount {
+  id            String      @id @default(cuid())
+  locationId    String      @map("location_id")
+  status        CountStatus @default(IN_PROGRESS)
+  startedAt     DateTime    @default(now()) @map("started_at")
+  completedAt   DateTime?   @map("completed_at")
+  performedById String      @map("performed_by_id")
+  notes         String?
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  items       PhysicalCountItem[]
+  location    InventoryLocation   @relation(fields: [locationId], references: [id])
+  performedBy User                @relation(fields: [performedById], references: [id])
+
+  @@index([locationId])
+  @@map("physical_counts")
+}
+
+model PhysicalCountItem {
+  id          String  @id @default(cuid())
+  countId     String  @map("count_id")
+  variantId   String  @map("variant_id")
+  expectedQty Int     @map("expected_qty")
+  actualQty   Int?    @map("actual_qty")
+  difference  Int?
+  resolved    Boolean @default(false)
+
+  // Relations
+  count   PhysicalCount  @relation(fields: [countId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("physical_count_items")
+}
+
+// ─────────────────────────────────────────────
+// 18. SHOPIFY SYNC LOG
+// ─────────────────────────────────────────────
+
+model ShopifySync {
+  id             String          @id @default(cuid())
+  type           ShopifySyncType
+  direction      SyncDirection
+  status         SyncStatus      @default(PENDING)
+  itemsProcessed Int             @default(0) @map("items_processed")
+  itemsFailed    Int             @default(0) @map("items_failed")
+  details        Json?
+  error          String?
+  startedAt      DateTime        @default(now()) @map("started_at")
+  completedAt    DateTime?       @map("completed_at")
+
+  @@map("shopify_syncs")
+}
+
+// ─────────────────────────────────────────────
+// MTO: WORK ORDER (Papeleta — central entity)
+// ─────────────────────────────────────────────
+
+model WorkOrder {
+  id                      String            @id @default(cuid())
+  workOrderNumber         String            @unique @map("work_order_number")
+  barcode                 String            @unique
+  orderId                 String?           @map("order_id")
+  customerId              String            @map("customer_id")
+  status                  WorkOrderStatus   @default(BORRADOR)
+  priority                WorkOrderPriority @default(NORMAL)
+  assignedDesignerId      String?           @map("assigned_designer_id")
+  source                  OrderSource       @default(ADMIN)
+  deliveryType            DeliveryType      @default(RETIRO_SUCURSAL) @map("delivery_type")
+  subtotalCents           Int               @default(0) @map("subtotal_cents")
+  discountCents           Int               @default(0) @map("discount_cents")
+  taxCents                Int               @default(0) @map("tax_cents")
+  totalCents              Int               @default(0) @map("total_cents")
+  currency                String            @default("CRC")
+  customerNotes           String?           @map("customer_notes")
+  internalNotes           String?           @map("internal_notes")
+  estimatedCompletionDate DateTime?         @map("estimated_completion_date")
+  actualCompletionDate    DateTime?         @map("actual_completion_date")
+  cancelledById           String?           @map("cancelled_by_id")
+  cancellationReason      String?           @map("cancellation_reason")
+  parentWorkOrderId       String?           @map("parent_work_order_id")
+  reworkReason            String?           @map("rework_reason")
+  createdById             String            @map("created_by_id")
+  createdAt               DateTime          @default(now()) @map("created_at")
+  updatedAt               DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  order            Order?                   @relation(fields: [orderId], references: [id])
+  customer         Customer                 @relation(fields: [customerId], references: [id])
+  assignedDesigner User?                    @relation("DesignerAssignment", fields: [assignedDesignerId], references: [id])
+  cancelledBy      User?                    @relation("WorkOrderCanceller", fields: [cancelledById], references: [id])
+  createdBy        User                     @relation("WorkOrderCreator", fields: [createdById], references: [id])
+  parentWorkOrder  WorkOrder?               @relation("WorkOrderRework", fields: [parentWorkOrderId], references: [id])
+  childWorkOrders  WorkOrder[]              @relation("WorkOrderRework")
+  lines            WorkOrderLine[]
+  designFiles      DesignFile[]
+  designApprovals  DesignApproval[]
+  incidents        Incident[]
+  packageLabels    PackageLabel[]
+  delivery         DeliveryRecord?
+  statusHistory    WorkOrderStatusHistory[]
+  aiConsultations  AIConsultation[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([assignedDesignerId])
+  @@index([createdAt])
+  @@map("work_orders")
+}
+
+// ─────────────────────────────────────────────
+// MTO: WORK ORDER LINE (individual piece/batch)
+// ─────────────────────────────────────────────
+
+model WorkOrderLine {
+  id             String             @id @default(cuid())
+  workOrderId    String             @map("work_order_id")
+  lineNumber     Int                @map("line_number")
+  barcode        String             @unique
+  productType    String             @map("product_type")
+  description    String
+  quantity       Int
+  unitPriceCents Int                @map("unit_price_cents")
+  specifications Json?
+  status         WorkOrderStatus    @default(BORRADOR)
+  currentStation ProductionStation? @map("current_station")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  workOrder      WorkOrder       @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  productionLogs ProductionLog[]
+  qualityChecks  QualityCheck[]
+  incidents      Incident[]
+
+  @@index([workOrderId])
+  @@index([status])
+  @@map("work_order_lines")
+}
+
+// ─────────────────────────────────────────────
+// MTO: DESIGN FILE
+// ─────────────────────────────────────────────
+
+model DesignFile {
+  id               String           @id @default(cuid())
+  workOrderId      String           @map("work_order_id")
+  version          Int              @default(1)
+  fileName         String           @map("file_name")
+  fileUrl          String           @map("file_url")
+  fileSizeBytes    Int              @map("file_size_bytes")
+  mimeType         String           @map("mime_type")
+  dpiX             Int?             @map("dpi_x")
+  dpiY             Int?             @map("dpi_y")
+  width            Int?
+  height           Int?
+  validationStatus DesignFileStatus @default(PENDING_VALIDATION) @map("validation_status")
+  validationErrors Json?            @map("validation_errors")
+  validatedAt      DateTime?        @map("validated_at")
+  isClientFile     Boolean          @default(true) @map("is_client_file")
+  uploadedById     String           @map("uploaded_by_id")
+  createdAt        DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  workOrder  WorkOrder        @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  uploadedBy User             @relation("DesignFileUploader", fields: [uploadedById], references: [id])
+  approvals  DesignApproval[]
+
+  @@index([workOrderId])
+  @@map("design_files")
+}
+
+// ─────────────────────────────────────────────
+// MTO: DESIGN APPROVAL
+// ─────────────────────────────────────────────
+
+model DesignApproval {
+  id             String               @id @default(cuid())
+  workOrderId    String               @map("work_order_id")
+  designFileId   String               @map("design_file_id")
+  iteration      Int                  @default(1)
+  status         DesignApprovalStatus @default(PENDING)
+  approvalToken  String               @unique @map("approval_token")
+  clientComments String?              @map("client_comments")
+  reviewedAt     DateTime?            @map("reviewed_at")
+  expiresAt      DateTime?            @map("expires_at")
+  createdAt      DateTime             @default(now()) @map("created_at")
+
+  // Relations
+  workOrder  WorkOrder  @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  designFile DesignFile @relation(fields: [designFileId], references: [id])
+
+  @@index([workOrderId])
+  @@index([approvalToken])
+  @@map("design_approvals")
+}
+
+// ─────────────────────────────────────────────
+// MTO: PRODUCTION LOG (barcode scan in/out)
+// ─────────────────────────────────────────────
+
+model ProductionLog {
+  id              String            @id @default(cuid())
+  workOrderLineId String            @map("work_order_line_id")
+  station         ProductionStation
+  operatorId      String            @map("operator_id")
+  scannedInAt     DateTime          @map("scanned_in_at")
+  scannedOutAt    DateTime?         @map("scanned_out_at")
+  durationSeconds Int?              @map("duration_seconds")
+  notes           String?
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  workOrderLine WorkOrderLine @relation(fields: [workOrderLineId], references: [id], onDelete: Cascade)
+  operator      User          @relation("ProductionOperator", fields: [operatorId], references: [id])
+
+  @@index([workOrderLineId])
+  @@index([station])
+  @@index([operatorId])
+  @@map("production_logs")
+}
+
+// ─────────────────────────────────────────────
+// MTO: QUALITY CHECK
+// ─────────────────────────────────────────────
+
+model QualityCheck {
+  id              String   @id @default(cuid())
+  workOrderLineId String   @map("work_order_line_id")
+  inspectorId     String   @map("inspector_id")
+  result          QCResult
+  checklistData   Json     @map("checklist_data")
+  photos          String[] @default([])
+  notes           String?
+  incidentId      String?  @map("incident_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relations
+  workOrderLine WorkOrderLine @relation(fields: [workOrderLineId], references: [id], onDelete: Cascade)
+  inspector     User          @relation("QCInspector", fields: [inspectorId], references: [id])
+
+  @@index([workOrderLineId])
+  @@map("quality_checks")
+}
+
+// ─────────────────────────────────────────────
+// MTO: INCIDENT
+// ─────────────────────────────────────────────
+
+model Incident {
+  id                 String                 @id @default(cuid())
+  incidentNumber     String                 @unique @map("incident_number")
+  workOrderId        String                 @map("work_order_id")
+  workOrderLineId    String?                @map("work_order_line_id")
+  type               IncidentType
+  severity           IncidentSeverity       @default(MEDIUM)
+  responsibility     IncidentResponsibility
+  description        String
+  photos             String[]               @default([])
+  costEstimatedCents Int                    @default(0) @map("cost_estimated_cents")
+  costRealCents      Int?                   @map("cost_real_cents")
+  resolution         IncidentResolution?
+  status             IncidentStatus         @default(OPEN)
+  reworkWorkOrderId  String?                @map("rework_work_order_id")
+  resolvedById       String?                @map("resolved_by_id")
+  resolvedAt         DateTime?              @map("resolved_at")
+  reportedById       String                 @map("reported_by_id")
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+
+  // Relations
+  workOrder     WorkOrder      @relation(fields: [workOrderId], references: [id])
+  workOrderLine WorkOrderLine? @relation(fields: [workOrderLineId], references: [id])
+  resolvedBy    User?          @relation("IncidentResolver", fields: [resolvedById], references: [id])
+  reportedBy    User           @relation("IncidentReporter", fields: [reportedById], references: [id])
+
+  @@index([workOrderId])
+  @@index([status])
+  @@index([type])
+  @@map("incidents")
+}
+
+// ─────────────────────────────────────────────
+// MTO: PACKAGE LABEL
+// ─────────────────────────────────────────────
+
+model PackageLabel {
+  id            String    @id @default(cuid())
+  workOrderId   String    @map("work_order_id")
+  labelNumber   Int       @map("label_number")
+  qrData        String    @map("qr_data")
+  code128Data   String    @map("code128_data")
+  pieceCount    Int       @map("piece_count")
+  clientName    String    @map("client_name")
+  deliveryType  String    @map("delivery_type")
+  generatedById String    @map("generated_by_id")
+  printedAt     DateTime? @map("printed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  generatedBy User      @relation("LabelGenerator", fields: [generatedById], references: [id])
+
+  @@index([workOrderId])
+  @@map("package_labels")
+}
+
+// ─────────────────────────────────────────────
+// MTO: DELIVERY RECORD
+// ─────────────────────────────────────────────
+
+model DeliveryRecord {
+  id             String         @id @default(cuid())
+  workOrderId    String         @unique @map("work_order_id")
+  deliveryType   DeliveryType   @map("delivery_type")
+  status         DeliveryStatus @default(PENDING)
+  carrierName    String?        @map("carrier_name")
+  trackingNumber String?        @map("tracking_number")
+  scheduledDate  DateTime?      @map("scheduled_date")
+  shippedAt      DateTime?      @map("shipped_at")
+  deliveredAt    DateTime?      @map("delivered_at")
+  receivedByName String?        @map("received_by_name")
+  signatureUrl   String?        @map("signature_url")
+  photoUrl       String?        @map("photo_url")
+  notes          String?
+  confirmedById  String?        @map("confirmed_by_id")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  confirmedBy User?     @relation("DeliveryConfirmer", fields: [confirmedById], references: [id])
+
+  @@map("delivery_records")
+}
+
+// ─────────────────────────────────────────────
+// MTO: WORK ORDER STATUS HISTORY
+// ─────────────────────────────────────────────
+
+model WorkOrderStatusHistory {
+  id          String           @id @default(cuid())
+  workOrderId String           @map("work_order_id")
+  fromStatus  WorkOrderStatus? @map("from_status")
+  toStatus    WorkOrderStatus  @map("to_status")
+  changedById String?          @map("changed_by_id")
+  notes       String?
+  metadata    Json?
+  automatic   Boolean          @default(false)
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  changedBy User?     @relation("WOStatusChanger", fields: [changedById], references: [id])
+
+  @@index([workOrderId, createdAt])
+  @@map("work_order_status_history")
+}
+
+// ─────────────────────────────────────────────
+// AI SYSTEM — Cerebro Inteligente VOneB
+// ─────────────────────────────────────────────
+
+model AIMemory {
+  id          String   @id @default(cuid())
+  metricKey   String   @unique @map("metric_key")
+  value       Float
+  sampleCount Int      @default(1) @map("sample_count")
+  trend       String   @default("STABLE")
+  metadata    Json?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_memory")
+}
+
+model AIPattern {
+  id           String   @id @default(cuid())
+  patternType  String   @map("pattern_type")
+  title        String
+  description  String
+  confidence   Float
+  data         Json
+  acknowledged Boolean  @default(false)
+  detectedAt   DateTime @default(now()) @map("detected_at")
+
+  @@index([patternType])
+  @@index([acknowledged])
+  @@map("ai_patterns")
+}
+
+model AIActionLog {
+  id          String   @id @default(cuid())
+  actionType  String   @map("action_type")
+  severity    String   @default("INFO")
+  title       String
+  description String
+  triggeredBy String   @map("triggered_by")
+  targetId    String?  @map("target_id")
+  targetType  String?  @map("target_type")
+  result      String   @default("EXECUTED")
+  approvedBy  String?  @map("approved_by")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([actionType])
+  @@index([createdAt])
+  @@index([targetId])
+  @@map("ai_action_logs")
+}
+
+model AIConsultation {
+  id             String    @id @default(cuid())
+  targetUserId   String    @map("target_user_id")
+  targetRole     String    @map("target_role")
+  title          String
+  description    String
+  recommendation String
+  options        Json
+  workOrderId    String?   @map("work_order_id")
+  status         String    @default("PENDING")
+  respondedBy    String?   @map("responded_by")
+  response       String?
+  respondedAt    DateTime? @map("responded_at")
+  expiresAt      DateTime  @map("expires_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  targetUser  User       @relation("AIConsultTarget", fields: [targetUserId], references: [id])
+  workOrder   WorkOrder? @relation(fields: [workOrderId], references: [id])
+
+  @@index([targetUserId, status])
+  @@index([status])
+  @@index([workOrderId])
+  @@map("ai_consultations")
+}

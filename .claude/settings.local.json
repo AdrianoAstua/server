@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs head:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx --package=prisma@6 prisma validate --schema=packages/database/prisma/schema.prisma)"
+    ]
+  }
+}

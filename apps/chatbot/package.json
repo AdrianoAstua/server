@@ -1,0 +1,30 @@
+{
+  "name": "@voneb/chatbot",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome check src/",
+    "lint:fix": "biome check --write src/"
+  },
+  "dependencies": {
+    "@voneb/database": "workspace:*",
+    "@voneb/shared": "workspace:*",
+    "@voneb/crm-client": "workspace:*",
+    "@voneb/notifications": "workspace:*",
+    "@whiskeysockets/baileys": "^6.7.0",
+    "bullmq": "^5.0.0",
+    "pino": "^9.0.0",
+    "undici": "^7.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "vitest": "^2.1.0"
+  }
+}

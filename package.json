@@ -1,0 +1,37 @@
+{
+  "name": "voneb-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sistema integral V ONE B — ropa deportiva costarricense",
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:api": "turbo dev --filter=@voneb/api",
+    "dev:chatbot": "turbo dev --filter=@voneb/chatbot",
+    "dev:admin": "turbo dev --filter=@voneb/admin",
+    "build": "turbo build",
+    "test": "turbo test",
+    "test:coverage": "turbo test -- --coverage",
+    "lint": "turbo lint",
+    "lint:fix": "turbo lint:fix",
+    "db:generate": "pnpm --filter @voneb/database prisma generate",
+    "db:migrate": "pnpm --filter @voneb/database prisma migrate dev",
+    "db:migrate:prod": "pnpm --filter @voneb/database prisma migrate deploy",
+    "db:seed": "pnpm --filter @voneb/database prisma db seed",
+    "db:reset": "pnpm --filter @voneb/database prisma migrate reset",
+    "db:studio": "pnpm --filter @voneb/database prisma studio",
+    "docker:dev": "docker-compose up -d",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:down": "docker-compose down",
+    "clean": "turbo clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
