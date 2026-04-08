@@ -905,7 +905,7 @@ class ClientCommunicationEngine {
 
       if (orders.length > 1) {
         const orderList = orders
-          .map((o) => `- ${o.workOrderNumber}: ${STATUS_LABELS[o.status] ?? o.status}`)
+          .map((o: any) => `- ${o.workOrderNumber}: ${STATUS_LABELS[o.status] ?? o.status}`)
           .join('\n')
         return {
           message: this.fillTemplate(RESPONSE_TEMPLATES['status_multiple']!, {

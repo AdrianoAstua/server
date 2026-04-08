@@ -145,14 +145,14 @@ export async function getStockMatrix(productId: string) {
     },
   })
 
-  return variants.map((variant) => ({
+  return variants.map((variant: any) => ({
     id: variant.id,
     sku: variant.sku,
     color: variant.color,
     size: variant.size,
     status: variant.status,
     totalStock: variant.stockQuantity,
-    locations: variant.locationStocks.map((ls) => ({
+    locations: variant.locationStocks.map((ls: any) => ({
       location: ls.location,
       quantity: ls.quantity,
       minThreshold: ls.minThreshold,
@@ -357,7 +357,7 @@ export async function getLowStockByLocation(locationId: string) {
     },
   })
 
-  return allStocks.filter((stock) => stock.quantity <= stock.minThreshold)
+  return allStocks.filter((stock: any) => stock.quantity <= stock.minThreshold)
 }
 
 export async function getOutOfStockByLocation(locationId: string) {

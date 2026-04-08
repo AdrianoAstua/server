@@ -20,7 +20,7 @@ async function recalculateVariantStock(
   tx: TxClient,
 ): Promise<void> {
   const stocks = await tx.locationStock.findMany({ where: { variantId } })
-  const total = stocks.reduce((sum, s) => sum + s.quantity, 0)
+  const total = stocks.reduce((sum: any, s: any) => sum + s.quantity, 0)
   const variant = await tx.productVariant.findUnique({
     where: { id: variantId },
     select: { minStockThreshold: true },
@@ -388,7 +388,7 @@ export async function getDailySummary(query: DailySummaryQuery) {
   })
 
   const totalSales = sales.length
-  const totalRevenueCents = sales.reduce((sum, s) => sum + s.totalCents, 0)
+  const totalRevenueCents = sales.reduce((sum: any, s: any) => sum + s.totalCents, 0)
 
   let itemsSold = 0
   const byMethodMap = new Map<string, { count: number; totalCents: number }>()

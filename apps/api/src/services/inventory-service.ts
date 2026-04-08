@@ -15,7 +15,7 @@ async function recalculateVariantStock(tx: TxClient, variantId: string): Promise
   if (!variant) throw new NotFoundError(`Variant "${variantId}" not found`)
 
   const locationStocks = await tx.locationStock.findMany({ where: { variantId } })
-  const totalStock = locationStocks.reduce((sum, ls) => sum + ls.quantity, 0)
+  const totalStock = locationStocks.reduce((sum: any, ls: any) => sum + ls.quantity, 0)
   const status = evaluateVariantStatus(totalStock, variant.minStockThreshold)
 
   await tx.productVariant.update({

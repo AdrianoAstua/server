@@ -59,7 +59,7 @@ export default async function trackingRoutes(fastify: FastifyInstance): Promise<
       if (!workOrder) throw new NotFoundError('Work order not found')
 
       // Build public-safe timeline
-      const timeline = workOrder.statusHistory.map((entry) => ({
+      const timeline = workOrder.statusHistory.map((entry: any) => ({
         status: entry.toStatus,
         label: WORK_ORDER_STATUS_LABELS[entry.toStatus] ?? entry.toStatus,
         timestamp: entry.createdAt,

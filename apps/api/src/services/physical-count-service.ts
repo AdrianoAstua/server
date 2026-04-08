@@ -18,7 +18,7 @@ async function recalculateVariantStock(
   tx: TxClient,
 ): Promise<void> {
   const stocks = await tx.locationStock.findMany({ where: { variantId } })
-  const total = stocks.reduce((sum, s) => sum + s.quantity, 0)
+  const total = stocks.reduce((sum: any, s: any) => sum + s.quantity, 0)
   const variant = await tx.productVariant.findUnique({
     where: { id: variantId },
     select: { minStockThreshold: true },
@@ -66,7 +66,7 @@ export async function startCount(
       performedById: userId,
       notes,
       items: {
-        create: stockLevels.map((stock) => ({
+        create: stockLevels.map((stock: any) => ({
           variantId: stock.variantId,
           expectedQty: stock.quantity,
         })),

@@ -200,7 +200,7 @@ export async function generatePackageLabel(workOrderId: string): Promise<Buffer>
 
   if (!workOrder) throw new NotFoundError('Work order not found')
 
-  const pieceCount = workOrder.lines.reduce((sum, l) => sum + l.quantity, 0)
+  const pieceCount = workOrder.lines.reduce((sum: any, l: any) => sum + l.quantity, 0)
   const clientName = `${workOrder.customer.firstName} ${workOrder.customer.lastName}`
   const trackingUrl = `${PUBLIC_BASE_URL}/tracking/${workOrder.workOrderNumber}`
 

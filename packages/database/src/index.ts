@@ -1,5 +1,7 @@
+// @ts-ignore - PrismaClient may not be generated yet during build
 export { PrismaClient } from '@prisma/client'
 
+// @ts-ignore - PrismaClient may not be generated yet during build
 import { PrismaClient } from '@prisma/client'
 
 let prisma: PrismaClient | undefined

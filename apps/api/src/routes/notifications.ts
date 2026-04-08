@@ -18,7 +18,7 @@ export default async function notificationRoutes(
   fastify.get(
     '/api/notifications',
     {
-      preHandler: [fastify.authenticate, validateQuery(notificationFiltersSchema)],
+      preHandler: [fastify.authenticate, validateQuery(notificationFiltersSchema as any)],
     },
     async (request, reply) => {
       const userId = request.user.id

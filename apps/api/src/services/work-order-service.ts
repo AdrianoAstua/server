@@ -272,7 +272,7 @@ export async function updateWorkOrderStatus(
     // Can't move to APROBADO_PARA_PRODUCCION without at least one approved DesignApproval
     if (data.status === 'APROBADO_PARA_PRODUCCION') {
       const hasApproved = workOrder.designApprovals.some(
-        (a) => a.status === 'APPROVED',
+        (a: any) => a.status === 'APPROVED',
       )
       if (!hasApproved) {
         throw new ValidationError(
@@ -285,7 +285,7 @@ export async function updateWorkOrderStatus(
     // Can't move to CERRADO if any Incident has status OPEN or INVESTIGATING
     if (data.status === 'CERRADO') {
       const openIncidents = workOrder.incidents.filter(
-        (i) => i.status === 'OPEN' || i.status === 'INVESTIGATING',
+        (i: any) => i.status === 'OPEN' || i.status === 'INVESTIGATING',
       )
       if (openIncidents.length > 0) {
         throw new ValidationError(
