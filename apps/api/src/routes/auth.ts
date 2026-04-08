@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import { getDatabase } from '@voneb/database'
 import { getEnv } from '../config/env.js'
 import { validateBody } from '../middleware/validate.js'
